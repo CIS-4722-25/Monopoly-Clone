@@ -24,7 +24,7 @@ class Property {
     _set;
     /** @type {number} @readonly */
     price;
-    /** @type {number} @readonly @private */
+    /** @type {number[]} @readonly @private */
     _rent;
     /** @type {number} @readonly */
     mortgage;
