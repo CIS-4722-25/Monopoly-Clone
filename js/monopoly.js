@@ -17,27 +17,27 @@ const GAME = {
 
 class Property {
     /** @type {number} @readonly */
-    position;
+    position
     /** @type {string} @readonly */
-    name;
+    name
     /** @type {string} @readonly @private */
-    _set;
+    _set
     /** @type {number} @readonly */
-    price;
+    price
     /** @type {number[]} @readonly @private */
-    _rent;
+    _rent
     /** @type {number} @readonly */
-    mortgage;
+    mortgage
     /** @type {number} @readonly */
-    unmortgage;
+    unmortgage
     /** @type {number} @readonly */
-    housePrice;
+    housePrice
     /** @type {Player} */
-    owner = GAME.bank;
+    owner = GAME.bank
     /** @type {number} */
-    houses = 0;
+    houses = 0
     /** @type {boolean} */
-    isMortgaged = false;
+    isMortgaged = false
 
     /** @param {JSON} jsonObject */
     constructor(jsonObject) {
