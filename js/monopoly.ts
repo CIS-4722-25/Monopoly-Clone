@@ -7,11 +7,13 @@ class Die {
 
     constructor(sides = 6) { this.#sides = sides }
     
-    roll(sides?: number) {
-        if (sides)
-            return new Die(sides).roll()
-        this.#value = Math.floor(Math.random() * this.#sides) + 1
-        return this.value
+    roll(sides?: number): Die {
+        return (sides)
+            ? new Die(sides).roll()
+            : (
+                this.#value = ~~(Math.random() * this.#sides) + 1,
+                this
+            )
     }
 }
 
@@ -19,24 +21,22 @@ class Dice extends Array<Die> {
     constructor(nDice: number | string = 2, sides = 6) {
         if (typeof(nDice) === "string" && /^\d+d\d+$/.test(nDice))
             [nDice, sides] = nDice.split('d').map(v => +v)
-        super(+nDice)
-        this.fill(new Die(sides))
+        super(...[...Array(+nDice)].map(() => new Die(sides)))
     }
 
-    roll(nDice: number | string = 2, sides = 6): Dice {
-        if (nDice)
-            return new Dice(nDice, sides).roll()
-        this.map((_, i) => this[i].roll())
-        return this
-    }
+    roll(): Dice
+        { return (this.map((_, i) => this[i].roll()), this) }
 
-    sum()
-        { return this.map(d => d.value).reduce((p, c) => p + c) }
+    peek(): number[]
+        { return this.map(d => d.value) }
+
+    sum(): number
+        { return this.peek().reduce((p, c) => p + c) }
 }
 
 function denominations(money: number) {
     return Object.fromEntries([500, 100, 50, 20, 10, 5, 1].map(k => {
-        let v = Math.floor(money / k)
+        let v = ~~(money / k)
         return (money %= k, [k, v])
     }))
 }
@@ -62,21 +62,21 @@ class WrapIter {
             : this.#min
     }
 
-    next(currVal = this.#curr) {
-        this.#curr = this.#max < currVal
-            ? this.#min
-            : currVal + 1
+    next(currVal = this.#curr): number {
+        this.#curr = currVal <= this.#max
+            ? currVal + 1
+            : this.#min
         return this.#curr
     }
 
-    prev(currVal = this.#curr) {
-        this.#curr = currVal < this.#min
-            ? this.#max
-            : currVal - 1
+    prev(currVal = this.#curr): number {
+        this.#curr = this.#min <= currVal
+            ? currVal - 1
+            : this.#max
         return this.#curr
     }
 
-    includes(value: number)
+    includes(value: number): boolean
         { return this.#min <= value && value <= this.#max }
 }
 
@@ -167,7 +167,7 @@ class Property {
         }
     }
 
-    upgrade() {
+    upgrade(): boolean {
         if (!this.canUpgrade)
             { return false }
         if (this.isMortgaged) {
@@ -190,12 +190,12 @@ class Deck extends Array<Card> {
     readonly draw = this.shift
     readonly bottom = this.push
     
-    shuffle() {
-        return this.forEach((c, i) => {
-            let r = Math.floor(Math.random() * this.length)
+    shuffle(): Deck {
+        return (this.forEach((c, i) => {
+            let r = ~~(Math.random() * this.length)
             this[i] = this[r]
             this[r] = c
-        })
+        }), this)
     }
 }
 
@@ -211,11 +211,13 @@ class Inventory {
     readonly cards = new Set<Card>()
     readonly debt: { [key: string]: number } = { }
 
-    canPay(amount: number) { return this.money >= amount }
+    canPay(amount: number): boolean
+        { return this.money >= amount }
 
-    pay(inv: Inventory, amount: number) {
-        return !this.canPay(amount) ? false
-            : (inv.money += amount, this.money -= amount, true)
+    pay(inv: Inventory, amount: number): boolean {
+        return this.canPay(amount)
+            ? (inv.money += amount, this.money -= amount, true)
+            : false
     }
 
     takeAll(inv: Inventory) {
@@ -240,7 +242,7 @@ class Trade extends Inventory {
         this.owner = owner
     }
 
-    addItem(item: number | Card | Property) {
+    addItem(item: number | Card | Property): boolean {
         if (typeof(item) === "number")
             return (this.money += item, true)
         if (!(item instanceof Property))
@@ -250,12 +252,12 @@ class Trade extends Inventory {
         return false
     }
 
-    canTrade(t: Trade) {
+    canTrade(t: Trade): boolean {
         return [this, t].every(t => t.money > 0 || t.props.size > 0 || t.cards.size > 0)
             && [this.props, t.props].some(p => p.size > 0)
     }
 
-    trade(t: Trade) {
+    trade(t: Trade): boolean {
         if (!this.canTrade(t))
             { return false }
         this.money > t.money
@@ -278,7 +280,7 @@ class Player extends Inventory {
     readonly pos = new WrapIter(40)
     get position() { return this.pos.currVal }
 
-    move(nTiles = 0) {
+    move(nTiles = 0): number {
         while (nTiles !== 0) {
             nTiles > 0
                 ? (this.pos.next(), nTiles--)
@@ -291,15 +293,15 @@ class Player extends Inventory {
         return this.position
     }
 
-    goTo(tile: number) {
+    goTo(tile: number): number {
         if (!this.pos.includes(tile))
-            return this.pos
+            return this.pos.currVal
         while (this.position !== tile)
             this.move(1)
         return this.position
     }
 
-    bankrupt(toWhom: Inventory) {
+    bankrupt(toWhom: Inventory): boolean {
         GAME.players.delete(this)
         if (toWhom instanceof Player && !(toWhom instanceof Bank)) {
             toWhom.takeAll(this)
@@ -319,7 +321,7 @@ class Player extends Inventory {
                     ? GAME.bank.pay(this, p.mortgage)
                     : GAME.bank.pay(this, p.value)
             })
-            let payout = Math.floor(this.money / GAME.players.size)
+            let payout = ~~(this.money / GAME.players.size)
             GAME.players.forEach(p => this.pay(p, payout))
             // All properties returned to the bank this way are auctioned, in order of board position
             // return
@@ -334,7 +336,7 @@ class Bank extends Inventory {
     houses = 12
     hotels = 32
 
-    pay(inv: Inventory, amount: number) {
+    pay(inv: Inventory, amount: number): true {
         inv.money += amount
         return true
     }
