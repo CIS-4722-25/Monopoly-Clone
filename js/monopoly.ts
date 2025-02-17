@@ -34,22 +34,11 @@ class Dice extends Array<Die> {
         { return this.map(d => d.value).reduce((p, c) => p + c) }
 }
 
-// TODO Fix
-class Denomination {
-    500 = 0
-    100 = 0
-     50 = 0
-     20 = 0
-     10 = 0
-      5 = 0
-      1 = 0
-    
-    constructor(money: number) {
-        Object.keys(this).map(k => +k).sort((a, b) => b - a).forEach(k => {
-            this[k] += Math.floor(money / k)
-            money %= k
-        })
-    }
+function denominations(money: number) {
+    return Object.fromEntries([500, 100, 50, 20, 10, 5, 1].map(k => {
+        let v = Math.floor(money / k)
+        return (money %= k, [k, v])
+    }))
 }
 
 /** Iterator that wraps around */
