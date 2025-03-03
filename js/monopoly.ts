@@ -63,17 +63,15 @@ class WrapIter {
     }
 
     next(currVal = this.#curr): number {
-        this.#curr = currVal <= this.#max
+        return this.#curr = currVal <= this.#max
             ? currVal + 1
             : this.#min
-        return this.#curr
     }
 
     prev(currVal = this.#curr): number {
-        this.#curr = this.#min <= currVal
+        return this.#curr = this.#min <= currVal
             ? currVal - 1
             : this.#max
-        return this.#curr
     }
 
     includes(value: number): boolean
@@ -354,3 +352,21 @@ const GAME = {
     },
     dice: new Dice("2d6")
 }
+
+// TODO: Implement the following code into the project:
+
+let side = [...Array(10).keys()]
+
+let boardmap = [
+    side.map(c => ({ row: 10,     col: 10 - c })),
+    side.map(c => ({ row: 10 - c, col: 0      })),
+    side.map(c => ({ row: 0,      col: c      })),
+    side.map(c => ({ row: c,      col: 10     }))
+].flat()
+
+//  [
+//      {10, 10}..{10,  1}, (0-9)
+//      {10,  0}..{ 1,  0}, (10-19)
+//      { 0,  0}..{ 0,  9}, (20-29)
+//      { 0, 10}..{ 9, 10}  (30-39)
+//  ]
