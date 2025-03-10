@@ -350,23 +350,11 @@ const GAME = {
         "Chance": new Deck(),
         "Community Chest": new Deck()
     },
-    dice: new Dice("2d6")
+    dice: new Dice("2d6"),
+    boardmap: (range => [
+        range.map(i => ({ row: 10,     col: 10 - i })), // {10, 10}..{10,  1},
+        range.map(i => ({ row: 10 - i, col:  0     })), // {10,  0}..{ 1,  0},
+        range.map(i => ({ row:  0,     col:  i     })), // { 0,  0}..{ 0,  9},
+        range.map(i => ({ row:  i,     col: 10     }))  // { 0, 10}..{ 9, 10}
+    ].flat())([...Array(10).keys()]) // [0..9]
 }
-
-// TODO: Implement the following code into the project:
-
-let side = [...Array(10).keys()]
-
-let boardmap = [
-    side.map(c => ({ row: 10,     col: 10 - c })),
-    side.map(c => ({ row: 10 - c, col: 0      })),
-    side.map(c => ({ row: 0,      col: c      })),
-    side.map(c => ({ row: c,      col: 10     }))
-].flat()
-
-//  [
-//      {10, 10}..{10,  1}, (0-9)
-//      {10,  0}..{ 1,  0}, (10-19)
-//      { 0,  0}..{ 0,  9}, (20-29)
-//      { 0, 10}..{ 9, 10}  (30-39)
-//  ]
