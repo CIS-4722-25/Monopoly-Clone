@@ -1,27 +1,26 @@
 class Die {
-    readonly #sides: number
-    get sides() { return this.#sides }
+    readonly sides: number
     
     #value = 1
     get value() { return this.#value }
 
-    constructor(sides = 6) { this.#sides = sides }
+    constructor(sides = 6) { this.sides = sides }
     
     roll(sides?: number): Die {
         return (sides)
             ? new Die(sides).roll()
             : (
-                this.#value = ~~(Math.random() * this.#sides) + 1,
+                this.#value = ~~(Math.random() * this.sides) + 1,
                 this
             )
     }
 }
 
 class Dice extends Array<Die> {
-    constructor(nDice: number | string = 2, sides = 6) {
-        if (typeof(nDice) === "string" && /^\d+d\d+$/.test(nDice))
-            [nDice, sides] = nDice.split('d').map(v => +v)
-        super(...[...Array(+nDice)].map(() => new Die(sides)))
+    constructor(count: number | string = 2, sides = 6) {
+        if (typeof(count) === "string" && /^\d+d\d+$/.test(count))
+            [count, sides] = count.split('d').map(v => +v)
+        super(...[...Array(+count)].map(() => new Die(sides)))
     }
 
     roll(): Dice
@@ -48,6 +47,10 @@ class WrapIter {
 
     #curr: number
     get currVal() { return this.#curr }
+    set currVal(newVal: number) {
+        if (this.includes(newVal))
+            this.#curr = newVal
+    }
 
     /** `f(a) => (stop = a)` */
     constructor(start: number, stop?: number, currVal?: number) {
@@ -90,7 +93,8 @@ class Property {
     get rent() {
         if (this.isMortgaged)
             { return 0 }
-        let count = [...this.set].filter(p => p.owner === this.owner).length
+        let count = [...this.set]
+            .filter(p => p.owner === this.owner).length
         switch (this.#set) {
             case "railroad":
                 return 12.5 * 2 ** count
@@ -274,28 +278,46 @@ class Player extends Inventory {
     money = 1500
     inJail = false
     bailRolls = 0
+    piece: string
 
-    readonly pos = new WrapIter(40)
+    readonly pos = new WrapIter(GAME.boardmap.length)
     get position() { return this.pos.currVal }
 
-    move(nTiles = 0): number {
-        while (nTiles !== 0) {
-            nTiles > 0
-                ? (this.pos.next(), nTiles--)
-                : (this.pos.prev(), nTiles++)
-            if (this.position == 0)
-                GAME.bank.debt.hasOwnProperty(this.name)
-                    ? GAME.bank.debt[this.name] += 200
-                    : GAME.bank.debt[this.name]  = 200
+    moveN(nTiles: number): number {
+        setTimeout(() => this.updatePosition(), 500)
+        if (nTiles < 0) {
+            this.pos.prev()
+            return this.moveN(nTiles - 1)
+        }
+        if (nTiles > 0) {
+            this.pos.next()
+            return this.moveN(nTiles + 1)
         }
         return this.position
     }
 
-    goTo(tile: number): number {
-        if (!this.pos.includes(tile))
-            return this.pos.currVal
-        while (this.position !== tile)
-            this.move(1)
+    moveTo(tile: number): number {
+        setTimeout(() => this.updatePosition(), 500)
+        if (!this.pos.includes(tile)
+        || this.position == tile)
+            return this.position
+        this.pos.next()
+        return this.moveTo(tile)
+    }
+
+    updatePosition() {
+        let piece = document.getElementById(`piece.${this.piece}`)
+        if (!piece)
+            return (console.warn("updatePosition: Piece not found."), 404)
+        piece.remove()
+        GAME.boardmap[this.position].appendChild(piece)
+        return this.position
+    }
+
+    goToJail(): number {
+        this.inJail = true
+        this.pos.currVal = 11
+        this.updatePosition()
         return this.position
     }
 
@@ -321,13 +343,15 @@ class Player extends Inventory {
             })
             let payout = ~~(this.money / GAME.players.size)
             GAME.players.forEach(p => this.pay(p, payout))
-            // All properties returned to the bank this way are auctioned, in order of board position
-            // return
+            // TODO: All properties returned to the bank this
+            // way are auctioned, in order of board position
         }
         { return true }
     }
 
-    load() {} // TODO: Loads the player's inventory into the UI
+    loadInventory() {} // TODO: Load the player's inventory into the UI
+
+    takeTurn() {} // TODO
 }
 
 class Bank extends Inventory {
@@ -350,11 +374,15 @@ const GAME = {
         "Chance": new Deck(),
         "Community Chest": new Deck()
     },
-    dice: new Dice("2d6"),
-    boardmap: (range => [
-        range.map(i => ({ row: 10,     col: 10 - i })), // {10, 10}..{10,  1},
-        range.map(i => ({ row: 10 - i, col:  0     })), // {10,  0}..{ 1,  0},
-        range.map(i => ({ row:  0,     col:  i     })), // { 0,  0}..{ 0,  9},
+    dice: new Dice(),
+    boardmap: ((range => [
+        range.map(i => ({ row: 10,     col: 10 - i })), // {10, 10}..{10,  1}..
+        range.map(i => ({ row: 10 - i, col:  0     })), // {10,  0}..{ 1,  0}..
+        range.map(i => ({ row:  0,     col:  i     })), // { 0,  0}..{ 0,  9}..
         range.map(i => ({ row:  i,     col: 10     }))  // { 0, 10}..{ 9, 10}
-    ].flat())([...Array(10).keys()]) // [0..9]
+    ].flat())([...Array(10).keys()]))
+        .map(({row, col}) =>
+            document.getElementById("board")!
+                    .getElementsByTagName("tr")[row]
+                    .getElementsByTagName("td")[col]) // table[10][10]..table[10][1]..
 }
