@@ -6,21 +6,15 @@ class Die {
 
     constructor(sides = 6) { this.sides = sides }
     
-    roll(sides?: number): Die {
-        return (sides)
-            ? new Die(sides).roll()
-            : (
-                this.#value = ~~(Math.random() * this.sides) + 1,
-                this
-            )
-    }
+    roll()
+        { return this.#value = ~~(Math.random() * this.sides) + 1 }
 }
 
 class Dice extends Array<Die> {
     constructor(count: number | string = 2, sides = 6) {
         if (typeof(count) === "string" && /^\d+d\d+$/.test(count))
             [count, sides] = count.split('d').map(v => +v)
-        super(...[...Array(+count)].map(() => new Die(sides)))
+        super(...[...new Array(+count)].map(() => new Die(sides)))
     }
 
     roll(): Dice
@@ -31,6 +25,9 @@ class Dice extends Array<Die> {
 
     sum(): number
         { return this.peek().reduce((p, c) => p + c) }
+
+    unique(): number
+        { return (new Set(this.peek())).size }
 }
 
 function denominations(money: number) {
@@ -48,33 +45,30 @@ class WrapIter {
     #curr: number
     get currVal() { return this.#curr }
     set currVal(newVal: number) {
-        if (this.includes(newVal))
-            this.#curr = newVal
+        this.includes(newVal) ? this.#curr = newVal
+        : console.error(`Value ${newVal} is not in range ${this.#min}..${this.#max}`)
     }
 
     /** `f(a) => (stop = a)` */
     constructor(start: number, stop?: number, currVal?: number) {
-        this.#min = stop
-            ? Math.max(start, 0)
-            : 0
-        this.#max = stop
-            ? Math.max(stop  - 1, this.#min + 1)
-            : Math.max(start - 1, this.#min + 1)
-        this.#curr = currVal
-            ? Math.min(Math.max(currVal, this.#min), this.#max)
-            : this.#min
+        this.#min = !stop ? 0
+        : Math.max(start, 0)
+        this.#max = !stop ? Math.max(start - 1, this.#min + 1)
+        : Math.max(stop - 1, this.#min + 1)
+        this.#curr = !currVal ? this.#min
+        : Math.min(Math.max(currVal, this.#min), this.#max)
     }
 
     next(currVal = this.#curr): number {
-        return this.#curr = currVal <= this.#max
-            ? currVal + 1
-            : this.#min
+        return this.#curr = currVal > this.#max
+            ? this.#min
+            : currVal + 1
     }
 
     prev(currVal = this.#curr): number {
-        return this.#curr = this.#min <= currVal
-            ? currVal - 1
-            : this.#max
+        return this.#curr = this.#min > currVal
+            ? this.#max
+            : currVal - 1
     }
 
     includes(value: number): boolean
@@ -85,6 +79,7 @@ class Property {
     readonly position: number
     readonly name: string
     readonly price: number
+    // readonly card: HTMLElement
     owner: Inventory = GAME.bank
     houses = 0
     isMortgaged = false
@@ -114,7 +109,7 @@ class Property {
     
     get isMonopoly() { return [...this.set].every(p => p.owner === this.owner) }
 
-    constructor(jsonObject: JSON) {
+    constructor(jsonObject: JSON | any) {
         let set = jsonObject["set"]
         if (!(set in GAME.propertySets))
             GAME.propertySets[set] = new Set()
@@ -217,9 +212,11 @@ class Inventory {
         { return this.money >= amount }
 
     pay(inv: Inventory, amount: number): boolean {
-        return this.canPay(amount)
-            ? (inv.money += amount, this.money -= amount, true)
-            : false
+        if (!this.canPay(amount))
+            return false
+        inv.money += amount
+        this.money -= amount
+        return true
     }
 
     takeAll(inv: Inventory) {
@@ -277,11 +274,18 @@ class Player extends Inventory {
     readonly name: string
     money = 1500
     inJail = false
+    doubles = 0
     bailRolls = 0
-    piece: string
+    readonly piece: string
 
     readonly pos = new WrapIter(GAME.boardmap.length)
     get position() { return this.pos.currVal }
+
+    constructor(name: string, piece: string) {
+        super()
+        this.name = name
+        this.piece = piece
+    }
 
     moveN(nTiles: number): number {
         setTimeout(() => this.updatePosition(), 500)
@@ -349,9 +353,12 @@ class Player extends Inventory {
         { return true }
     }
 
-    loadInventory() {} // TODO: Load the player's inventory into the UI
-
-    takeTurn() {} // TODO
+    // loadInventory() {
+    //     let cards = [...document.getElementsByClassName("card")]
+    //     cards.forEach(c => c.classList.add("unowned"))
+    //     let owned = [...this.props].map(p => p.card)
+    //     owned.forEach(c => c.classList.remove("unowned"))
+    // }
 }
 
 class Bank extends Inventory {
@@ -364,10 +371,102 @@ class Bank extends Inventory {
     }
 }
 
+class PromptButton extends HTMLButtonElement {
+    constructor(name: string, text: string, fn: () => {}) {
+        super()
+        this.name = name
+        this.value = text
+        this.onclick = fn
+    }
+}
+
+class Prompt extends Array<PromptButton> {
+    // TODO
+}
+
+function options(...ops: string[]) {
+    for (let button of [...document.getElementsByTagName("button")]) {
+        if (button.parentElement !== document.getElementById("prompt")!)
+            { continue }
+        button.style.visibility
+            = ops.includes(button.name)
+                ? "visible" : "hidden"
+    }
+}
+
+function nextPlayer() {
+    const players = GAME.turnOrder.filter(p => GAME.players.has(p))
+    const iter = new WrapIter(0, players.length, GAME.currPlayer!.position)
+    GAME.currPlayer = players[iter.next()]
+}
+
+function passTurn() {
+    options()
+    setTimeout(nextPlayer, 500)
+}
+
+function mainPhase() {
+    const player = GAME.currPlayer!
+    // player.loadInventory()
+    player.inJail
+        ? options("payBail", "bailCard", "roll", "trade", "manage")
+        : options("roll", "trade", "manage")
+}
+
+function endStep()
+    { setTimeout(() => options("pass", "trade", "manage"), 500) }
+
+// const round = ( x: number, towards: number ) =>
+//     (~~towards < x && x < 0) ? Math.floor(x)
+//     : (0 < x && x < ~~towards) ? Math.ceil(x)
+//     : ~~x
+
+function roll() {
+    options()
+    const player = GAME.currPlayer!
+    setTimeout(() => GAME.dice.roll(), 500)
+    if (player.inJail) {
+        if (GAME.dice.unique() === 1) {
+            player.inJail = false
+            player.moveN(GAME.dice.sum())
+        }
+        else if (player.bailRolls >= 3)
+            setTimeout(() => {
+                !player.cards ? options("payBail")
+                : options("payBail", "bailCard")
+            }, 500)
+        endStep()
+        { return }
+    }
+}
+
+function payBail() {
+    const player = GAME.currPlayer!
+    player.pay(GAME.bank, 50)
+    player.pos.currVal = 10
+}
+
+function addOption(name: string, display: string, fn: () => {}) {
+    const prompt = document.getElementById("prompt")!
+    const button = document.createElement("BUTTON") as HTMLButtonElement
+    button.style.visibility = "hidden"
+    button.name = name
+    button.value = display
+    button.onclick = fn
+    prompt.appendChild(button)
+}
+
+type Button = [string, string, () => {}]
+[
+    <Button>["roll", "Roll", roll],
+    <Button>["bail", "Pay Bail", payBail]
+].forEach(([n, d, f]) => addOption(n, d, f))
+
 const GAME = {
     bank: new Bank(),
     players: new Set<Player>(),
     propertySets: <{ [key: string]: Set<Property> }>{ },
+    turnOrder: <Player[]>[],
     currPlayer: <Player | null>null,
     board: new Array<() => { }>(),
     decks: {
@@ -380,7 +479,7 @@ const GAME = {
         range.map(i => ({ row: 10 - i, col:  0     })), // {10,  0}..{ 1,  0}..
         range.map(i => ({ row:  0,     col:  i     })), // { 0,  0}..{ 0,  9}..
         range.map(i => ({ row:  i,     col: 10     }))  // { 0, 10}..{ 9, 10}
-    ].flat())([...Array(10).keys()]))
+    ].flat())([...(new Array(10)).keys()]))
         .map(({row, col}) =>
             document.getElementById("board")!
                     .getElementsByTagName("tr")[row]
