@@ -320,6 +320,7 @@ class Player extends Inventory {
 
     goToJail(): number {
         this.inJail = true
+        this.doubles = 0
         this.pos.currVal = 11
         this.updatePosition()
         return this.position
@@ -372,96 +373,86 @@ class Bank extends Inventory {
 }
 
 class PromptButton extends HTMLButtonElement {
-    constructor(name: string, text: string, fn: () => {}) {
+    constructor(text: string, fn: () => any) {
         super()
-        this.name = name
         this.value = text
         this.onclick = fn
     }
 }
 
 class Prompt extends Array<PromptButton> {
-    // TODO
-}
-
-function options(...ops: string[]) {
-    for (let button of [...document.getElementsByTagName("button")]) {
-        if (button.parentElement !== document.getElementById("prompt")!)
-            { continue }
-        button.style.visibility
-            = ops.includes(button.name)
-                ? "visible" : "hidden"
+    load() {
+        let prompt = document.getElementById("prompt")!
+        prompt.innerHTML = ""
+        this.forEach(b => prompt.appendChild(b))
     }
 }
 
-function nextPlayer() {
-    const players = GAME.turnOrder.filter(p => GAME.players.has(p))
-    const iter = new WrapIter(0, players.length, GAME.currPlayer!.position)
-    GAME.currPlayer = players[iter.next()]
-}
+// function options(...ops: string[]) {
+//     for (let button of [...document.getElementsByTagName("button")]) {
+//         if (button.parentElement !== document.getElementById("prompt")!)
+//             { continue }
+//         button.style.visibility
+//             = ops.includes(button.name)
+//                 ? "visible" : "hidden"
+//     }
+// }
 
-function passTurn() {
-    options()
-    setTimeout(nextPlayer, 500)
-}
+// function nextPlayer() {
+//     const players = GAME.turnOrder.filter(p => GAME.players.has(p))
+//     const iter = new WrapIter(0, players.length, GAME.currPlayer!.position)
+//     GAME.currPlayer = players[iter.next()]
+// }
 
-function mainPhase() {
-    const player = GAME.currPlayer!
-    // player.loadInventory()
-    player.inJail
-        ? options("payBail", "bailCard", "roll", "trade", "manage")
-        : options("roll", "trade", "manage")
-}
+// function passTurn() {
+//     options()
+//     setTimeout(nextPlayer, 500)
+// }
 
-function endStep()
-    { setTimeout(() => options("pass", "trade", "manage"), 500) }
+// function mainPhase() {
+//     const player = GAME.currPlayer!
+//     // player.loadInventory()
+//     player.inJail
+//         ? options("payBail", "bailCard", "roll", "trade", "manage")
+//         : options("roll", "trade", "manage")
+// }
 
-// const round = ( x: number, towards: number ) =>
-//     (~~towards < x && x < 0) ? Math.floor(x)
-//     : (0 < x && x < ~~towards) ? Math.ceil(x)
-//     : ~~x
+// function endStep()
+//     { setTimeout(() => options("pass", "trade", "manage"), 500) }
 
-function roll() {
-    options()
-    const player = GAME.currPlayer!
-    setTimeout(() => GAME.dice.roll(), 500)
-    if (player.inJail) {
-        if (GAME.dice.unique() === 1) {
-            player.inJail = false
-            player.moveN(GAME.dice.sum())
-        }
-        else if (player.bailRolls >= 3)
-            setTimeout(() => {
-                !player.cards ? options("payBail")
-                : options("payBail", "bailCard")
-            }, 500)
-        endStep()
-        { return }
-    }
-}
+// // const round = ( x: number, towards: number ) =>
+// //     (~~towards < x && x < 0) ? Math.floor(x)
+// //     : (0 < x && x < ~~towards) ? Math.ceil(x)
+// //     : ~~x
 
-function payBail() {
-    const player = GAME.currPlayer!
-    player.pay(GAME.bank, 50)
-    player.pos.currVal = 10
-}
+// function roll() {
+//     options()
+//     const player = GAME.currPlayer!
+//     setTimeout(() => GAME.dice.roll(), 500)
+//     if (player.inJail) {
+//         if (GAME.dice.unique() === 1) {
+//             player.inJail = false
+//             player.moveN(GAME.dice.sum())
+//         }
+//         else if (player.bailRolls >= 3)
+//             setTimeout(() => {
+//                 !player.cards ? options("payBail")
+//                 : options("payBail", "bailCard")
+//             }, 500)
+//         endStep()
+//         { return }
+//     }
+// }
 
-function addOption(name: string, display: string, fn: () => {}) {
-    const prompt = document.getElementById("prompt")!
-    const button = document.createElement("BUTTON") as HTMLButtonElement
-    button.style.visibility = "hidden"
-    button.name = name
-    button.value = display
-    button.onclick = fn
-    prompt.appendChild(button)
-}
+// function payBail() {
+//     const player = GAME.currPlayer!
+//     player.pay(GAME.bank, 50)
+//     player.pos.currVal = 10
+// }
 
-type Button = [string, string, () => {}]
-[
-    <Button>["roll", "Roll", roll],
-    <Button>["bail", "Pay Bail", payBail]
-].forEach(([n, d, f]) => addOption(n, d, f))
-
+const INVENTORY = document.getElementById("inv")!
+const BOARD = document.getElementById("board")!
+const PROMPT = document.getElementById("prompt")!
 const GAME = {
     bank: new Bank(),
     players: new Set<Player>(),
@@ -480,8 +471,61 @@ const GAME = {
         range.map(i => ({ row:  0,     col:  i     })), // { 0,  0}..{ 0,  9}..
         range.map(i => ({ row:  i,     col: 10     }))  // { 0, 10}..{ 9, 10}
     ].flat())([...(new Array(10)).keys()]))
-        .map(({row, col}) =>
-            document.getElementById("board")!
-                    .getElementsByTagName("tr")[row]
-                    .getElementsByTagName("td")[col]) // table[10][10]..table[10][1]..
+        .map(({row, col}) => BOARD
+            .getElementsByTagName("tr")[row]
+            .getElementsByTagName("td")[col]) // table[10][10]..table[10][1]..
 }
+const PROMPT_BUTTONS = Object.fromEntries(Object.entries({
+    "trade": { // priority
+        text: "Trade",
+        fn: () => {}
+    },
+    "manage": { // priority
+        text: "Manage Properties",
+        fn: () => {}
+    },
+    "bankrupt": { // owe money
+        text: "Bankrupt",
+        fn: () => {}
+    },
+    "roll": { // roll
+        text: "Roll",
+        fn: () => {}
+    },
+    "pass": { // no roll
+        text: "End Turn",
+        fn: () => {}
+    },
+    "bailRoll": { // jail
+        text: "Roll",
+        fn: () => {}
+    },
+    "payBail": { // jail
+        text: "Pay Bail",
+        fn: () => {}
+    },
+    "buy": { // unowned
+        text: "Buy",
+        fn: () => {}
+    },
+    "auction": { // unowned
+        text: "Aunction",
+        fn: () => {}
+    },
+    "payRent": { // owe rent
+        text: "Pay Rent",
+        fn: () => {}
+    },
+    "bid": { // auction
+        text: "Place Bid",
+        fn: () => {}
+    },
+    "drop": { // auction
+        text: "Drop Out",
+        fn: () => {}
+    },
+    "": { // new option
+        text: "",
+        fn: () => {}
+    },
+}).map(([k, {text, fn}]) => [k, new PromptButton(text, fn)]))
