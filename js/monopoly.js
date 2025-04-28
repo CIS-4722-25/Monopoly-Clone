@@ -124,6 +124,7 @@
         }
         roll() {
           let d = GAME.dice.roll();
+          console.log(d.peek());
           if (d.unique() === 1) {
             if (++this.doubles == 3)
               this.goToJail();
@@ -152,7 +153,7 @@
         updatePosition() {
           setTimeout(() => {
           }, 200);
-          let piece = document.getElementById(`piece.${this.piece}`);
+          let piece = GAME.currPlayer?.piece;
           if (!piece)
             return console.warn("updatePosition: Piece not found."), 404;
           piece.remove();
