@@ -239,13 +239,6 @@
           this.id = `piece.${name}`;
         }
       };
-      var PromptButton = class extends HTMLButtonElement {
-        constructor(text, fn) {
-          super();
-          this.value = text;
-          this.onclick = fn;
-        }
-      };
       var INVENTORY = document.getElementById("inv");
       var BOARD = document.getElementById("board");
       var PROMPT = document.getElementById("prompt");
@@ -352,7 +345,12 @@
           fn: () => {
           }
         }
-      }).map(([k, { text, fn }]) => [k, new PromptButton(text, fn)]));
+      }).map(([k, v]) => {
+        let button = document.createElement("button");
+        button.value = v.text;
+        button.onclick = v.fn;
+        return [k, button];
+      }));
       var PROMPTS = Object.fromEntries(Object.entries({
         roll: ["roll"],
         mainPhase: ["roll", "trade", "manage"],
