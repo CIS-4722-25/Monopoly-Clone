@@ -366,8 +366,8 @@
         img.id = `piece.${v}`;
         img.src = `./images/${v}.png`;
         img.alt = v;
-        img.style.maxWidth = "25%";
-        img.style.maxHeight = "25%";
+        img.style.maxWidth = "10em";
+        img.style.maxHeight = "10em";
         img.style.aspectRatio = "1/1";
         return [k, img];
       }));
