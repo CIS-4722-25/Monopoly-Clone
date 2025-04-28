@@ -321,7 +321,7 @@
         }
       }).map(([k, v]) => {
         let button = document.createElement("button");
-        button.value = v.text;
+        button.textContent = v.text;
         button.onclick = v.fn;
         return [k, button];
       }));
