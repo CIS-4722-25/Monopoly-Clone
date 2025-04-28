@@ -262,8 +262,7 @@
         "roll": {
           // roll
           text: "Roll",
-          fn: () => {
-          }
+          fn: () => GAME.currPlayer?.roll()
         },
         "pass": {
           // no roll
