@@ -366,8 +366,10 @@
         img.id = `piece.${v}`;
         img.src = `./images/${v}.png`;
         img.alt = v;
-        img.style.maxWidth = "10em";
-        img.style.maxHeight = "10em";
+        img.style.width = "5vh";
+        img.style.height = "5vh";
+        img.style.maxWidth = "5vw";
+        img.style.maxHeight = "5vw";
         img.style.aspectRatio = "1/1";
         return [k, img];
       }));
@@ -382,7 +384,7 @@
         });
         GAME.currPlayer = GAME.turnOrder[0];
         GAME.players.forEach((a) => a.piece);
-        PROMPTS.roll.load();
+        PROMPTS["roll"].load();
       }
     }
   });
