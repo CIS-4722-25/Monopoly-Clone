@@ -238,7 +238,7 @@
           // { 0,  0}..{ 0,  9}..
           range.map((i) => ({ row: i, col: 10 }))
           // { 0, 10}..{ 9, 10}
-        ].flat())([...new Array(10).keys()]).map(({ row, col }) => BOARD.getElementsByTagName("tr").item(row).getElementsByTagName("th").item(col))
+        ].flat())([...new Array(10).keys()]).map(({ row, col }) => BOARD.getElementsByTagName("tr")[row].getElementsByTagName("th")[col])
         // table[10][10]..table[10][1]..
       };
       var PROMPT_BUTTONS = Object.fromEntries(Object.entries({
@@ -364,7 +364,6 @@
           GAME.turnOrder.push(p);
         });
         GAME.currPlayer = GAME.turnOrder[0];
-        GAME.players.forEach((a) => a.piece);
         loadPrompt(PROMPTS["roll"]);
       }
     }
