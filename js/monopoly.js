@@ -232,13 +232,6 @@
           return true;
         }
       };
-      var Piece = class extends HTMLImageElement {
-        constructor(name) {
-          super();
-          this.src = `${name.toLowerCase()}.png`;
-          this.id = `piece.${name}`;
-        }
-      };
       var INVENTORY = document.getElementById("inv");
       var BOARD = document.getElementById("board");
       var PROMPT = document.getElementById("prompt");
@@ -368,7 +361,13 @@
       var PIECES = Object.fromEntries(Object.entries({
         DOG: "dog",
         CAT: "cat"
-      }).map(([k, v]) => [k, new Piece(v)]));
+      }).map(([k, v]) => {
+        let img = document.createElement("img");
+        img.id = `piece.${v}`;
+        img.src = `./images/${v}.png`;
+        img.alt = v;
+        return [k, img];
+      }));
       initialize();
       function initialize() {
         [
