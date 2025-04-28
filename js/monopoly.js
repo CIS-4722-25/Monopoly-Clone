@@ -208,6 +208,11 @@
           return true;
         }
       };
+      function loadPrompt(prompt) {
+        PROMPT.innerHTML = "";
+        prompt.forEach((b) => PROMPT.appendChild(b));
+        return prompt;
+      }
       var INVENTORY = document.getElementById("inv");
       var BOARD = document.getElementById("board");
       var PROMPT = document.getElementById("prompt");
@@ -360,7 +365,7 @@
         });
         GAME.currPlayer = GAME.turnOrder[0];
         GAME.players.forEach((a) => a.piece);
-        PROMPTS["roll"].load();
+        loadPrompt(PROMPTS["roll"]);
       }
     }
   });
