@@ -1,38 +1,26 @@
 "use strict";
 (() => {
-  var __defProp = Object.defineProperty;
   var __getOwnPropNames = Object.getOwnPropertyNames;
-  var __typeError = (msg) => {
-    throw TypeError(msg);
-  };
-  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
   var __commonJS = (cb, mod) => function __require() {
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   };
-  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  var __accessCheck = (obj, member, msg) => member.has(obj) || __typeError("Cannot " + msg);
-  var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read from private field"), getter ? getter.call(obj) : member.get(obj));
-  var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
-  var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 
   // src/monopoly.ts
   var require_monopoly = __commonJS({
     "src/monopoly.ts"() {
-      var _value;
       var Die = class {
+        sides;
+        #value = 1;
+        get value() {
+          return this.#value;
+        }
         constructor(sides = 6) {
-          __publicField(this, "sides");
-          __privateAdd(this, _value, 1);
           this.sides = sides;
         }
-        get value() {
-          return __privateGet(this, _value);
-        }
         roll() {
-          return __privateSet(this, _value, ~~(Math.random() * this.sides) + 1);
+          return this.#value = ~~(Math.random() * this.sides) + 1;
         }
       };
-      _value = new WeakMap();
       var Dice = class extends Array {
         constructor(count = 2, sides = 6) {
           if (typeof count === "string" && /^\d+d\d+$/.test(count))
@@ -52,42 +40,35 @@
           return new Set(this.peek()).size;
         }
       };
-      var _min, _max, _curr;
       var WrapIter = class {
-        /** `f(a) => (stop = a)` */
-        constructor(start, stop, currVal) {
-          __privateAdd(this, _min);
-          __privateAdd(this, _max);
-          __privateAdd(this, _curr);
-          __privateSet(this, _min, !stop ? 0 : Math.max(start, 0));
-          __privateSet(this, _max, !stop ? Math.max(start - 1, __privateGet(this, _min) + 1) : Math.max(stop - 1, __privateGet(this, _min) + 1));
-          __privateSet(this, _curr, !currVal ? __privateGet(this, _min) : Math.min(Math.max(currVal, __privateGet(this, _min)), __privateGet(this, _max)));
-        }
+        #min;
+        #max;
+        #curr;
         get currVal() {
-          return __privateGet(this, _curr);
+          return this.#curr;
         }
         set currVal(newVal) {
-          this.includes(newVal) ? __privateSet(this, _curr, newVal) : console.error(`Value ${newVal} is not in range ${__privateGet(this, _min)}..${__privateGet(this, _max)}`);
+          this.includes(newVal) ? this.#curr = newVal : console.error(`Value ${newVal} is not in range ${this.#min}..${this.#max}`);
         }
-        next(currVal = __privateGet(this, _curr)) {
-          return __privateSet(this, _curr, currVal > __privateGet(this, _max) ? __privateGet(this, _min) : currVal + 1);
+        /** `f(a) => (stop = a)` */
+        constructor(start, stop, currVal) {
+          this.#min = !stop ? 0 : Math.max(start, 0);
+          this.#max = !stop ? Math.max(start - 1, this.#min + 1) : Math.max(stop - 1, this.#min + 1);
+          this.#curr = !currVal ? this.#min : Math.min(Math.max(currVal, this.#min), this.#max);
         }
-        prev(currVal = __privateGet(this, _curr)) {
-          return __privateSet(this, _curr, __privateGet(this, _min) > currVal ? __privateGet(this, _max) : currVal - 1);
+        next(currVal = this.#curr) {
+          return this.#curr = currVal > this.#max ? this.#min : currVal + 1;
+        }
+        prev(currVal = this.#curr) {
+          return this.#curr = this.#min > currVal ? this.#max : currVal - 1;
         }
         includes(value) {
-          return __privateGet(this, _min) <= value && value <= __privateGet(this, _max);
+          return this.#min <= value && value <= this.#max;
         }
       };
-      _min = new WeakMap();
-      _max = new WeakMap();
-      _curr = new WeakMap();
       var Deck = class extends Array {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "draw", this.shift);
-          __publicField(this, "bottom", this.push);
-        }
+        draw = this.shift;
+        bottom = this.push;
         shuffle() {
           return this.forEach((c, i) => {
             let r = ~~(Math.random() * this.length);
@@ -97,12 +78,10 @@
         }
       };
       var Inventory = class {
-        constructor() {
-          __publicField(this, "money", 0);
-          __publicField(this, "props", /* @__PURE__ */ new Set());
-          __publicField(this, "cards", /* @__PURE__ */ new Set());
-          __publicField(this, "debt", {});
-        }
+        money = 0;
+        props = /* @__PURE__ */ new Set();
+        cards = /* @__PURE__ */ new Set();
+        debt = {};
         canPay(amount) {
           return this.money >= amount;
         }
@@ -127,21 +106,21 @@
         }
       };
       var Player = class _Player extends Inventory {
+        name;
+        money = 1500;
+        inJail = false;
+        doubles = 0;
+        bailRolls = 0;
+        piece;
+        pos = new WrapIter(GAME.boardmap.length);
+        get position() {
+          return this.pos.currVal;
+        }
         constructor(name, piece) {
           super();
-          __publicField(this, "name");
-          __publicField(this, "money", 1500);
-          __publicField(this, "inJail", false);
-          __publicField(this, "doubles", 0);
-          __publicField(this, "bailRolls", 0);
-          __publicField(this, "piece");
-          __publicField(this, "pos", new WrapIter(GAME.boardmap.length));
           this.name = name;
           this.piece = piece;
           GAME.boardmap[0].appendChild(this.piece);
-        }
-        get position() {
-          return this.pos.currVal;
         }
         roll() {
           let d = GAME.dice.roll();
@@ -222,11 +201,8 @@
         // }
       };
       var Bank = class extends Inventory {
-        constructor() {
-          super(...arguments);
-          __publicField(this, "houses", 12);
-          __publicField(this, "hotels", 32);
-        }
+        houses = 12;
+        hotels = 32;
         pay(inv, amount) {
           inv.money += amount;
           return true;
