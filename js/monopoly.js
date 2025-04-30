@@ -487,6 +487,7 @@ const PIECES = Object.fromEntries(Object.entries({
 }));
 initialize();
 function initialize() {
+  console.log(GAME.boardmap);
   [
     new Player("Player 1", PIECES.DOG),
     new Player("Player 2", PIECES.CAT)
