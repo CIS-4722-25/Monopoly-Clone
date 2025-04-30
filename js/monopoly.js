@@ -243,7 +243,7 @@ class Player extends Inventory {
   doubles = 0;
   bailRolls = 0;
   piece;
-  pos = new WrapIter(GAME.boardmap.length);
+  pos = new WrapIter(GAME.boardmap.length - 1);
   get position() {
     return this.pos.currVal;
   }
@@ -266,11 +266,11 @@ class Player extends Inventory {
     this.updatePosition();
     if (nTiles < 0) {
       this.pos.prev();
-      return this.moveN(nTiles - 1);
+      return this.moveN(nTiles + 1);
     }
     if (nTiles > 0) {
       this.pos.next();
-      return this.moveN(nTiles + 1);
+      return this.moveN(nTiles - 1);
     }
     return this.position;
   }
@@ -288,6 +288,8 @@ class Player extends Inventory {
     if (!piece)
       return console.warn("updatePosition: Piece not found."), 404;
     piece.remove();
+    console.log(GAME.boardmap);
+    console.log(this.position);
     GAME.boardmap[this.position].appendChild(piece);
     return this.position;
   }
@@ -487,7 +489,6 @@ const PIECES = Object.fromEntries(Object.entries({
 }));
 initialize();
 function initialize() {
-  console.log(GAME.boardmap);
   [
     new Player("Player 1", PIECES.DOG),
     new Player("Player 2", PIECES.CAT)
