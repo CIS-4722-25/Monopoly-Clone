@@ -69,6 +69,9 @@ class Property {
   price;
   // readonly card: HTMLElement
   owner = GAME.bank;
+  get owned() {
+    return this.owner !== GAME.bank;
+  }
   houses = 0;
   isMortgaged = false;
   #rent;
@@ -166,6 +169,16 @@ class Property {
   auction() {
   }
   // TODO
+  action() {
+    if (this.owner === GAME.currPlayer) {
+      return;
+    }
+    if (this.owned) {
+      GAME.currPlayer.debt = [this.owner, this.rent];
+      return;
+    }
+    this.price <= GAME.currPlayer.money ? loadPrompt(PROMPTS.unownedCanAfford) : loadPrompt(PROMPTS.unownedCantAfford);
+  }
 }
 class Deck extends Array {
   draw = this.shift;
@@ -182,7 +195,7 @@ class Inventory {
   money = 0;
   props = /* @__PURE__ */ new Set();
   cards = /* @__PURE__ */ new Set();
-  debt = {};
+  debt = [];
   canPay(amount) {
     return this.money >= amount;
   }
@@ -255,7 +268,6 @@ class Player extends Inventory {
   }
   roll() {
     let d = GAME.dice.roll();
-    console.log(d.peek());
     if (d.unique() === 1) {
       if (++this.doubles == 3)
         this.goToJail();
@@ -263,15 +275,18 @@ class Player extends Inventory {
     this.moveN(d.sum());
   }
   moveN(nTiles) {
-    this.updatePosition();
-    if (nTiles < 0) {
-      this.pos.prev();
-      return this.moveN(nTiles + 1);
-    }
-    if (nTiles > 0) {
-      this.pos.next();
-      return this.moveN(nTiles - 1);
-    }
+    setTimeout(() => {
+      if (nTiles < 0) {
+        this.pos.prev();
+        this.updatePosition();
+        return this.moveN(nTiles + 1);
+      }
+      if (nTiles > 0) {
+        this.pos.next();
+        this.updatePosition();
+        return this.moveN(nTiles - 1);
+      }
+    }, 300);
     return this.position;
   }
   moveTo(tile) {
@@ -282,17 +297,16 @@ class Player extends Inventory {
     return this.moveTo(tile);
   }
   updatePosition() {
-    setTimeout(() => {
-    }, 200);
     let piece = GAME.currPlayer?.piece;
     if (!piece)
       return console.warn("updatePosition: Piece not found."), 404;
     piece.remove();
-    console.log(GAME.boardmap);
-    console.log(this.position);
     GAME.boardmap[this.position].appendChild(piece);
     return this.position;
   }
+  doTile() {
+  }
+  // TODO
   goToJail() {
     this.inJail = true;
     this.doubles = 0;
@@ -462,12 +476,13 @@ const PROMPTS = Object.fromEntries(Object.entries({
   roll: ["roll"],
   mainPhase: ["roll", "trade", "manage"],
   endStep: ["pass", "trade", "manage"],
-  unowned: ["buy", "auction"],
-  canPay: ["pay", "trade", "manage"],
+  unownedCanAfford: ["buy", "auction"],
+  unownedCantAfford: ["auction", "trade", "manage"],
+  canPay: ["pay"],
   // chance cards bankrupt if no money?
   cantPay: ["bankrupt", "trade", "manage"],
   bankrupt: ["bankrupt"],
-  bail: ["pay", "roll", "trade", "manage"],
+  jail: ["pay", "roll", "trade", "manage"],
   bailRoll: ["roll", "trade", "manage"],
   payBail: ["pay"]
   // can you manage properties or do you just go bankrupt?
@@ -480,11 +495,7 @@ const PIECES = Object.fromEntries(Object.entries({
   img.id = `piece.${v}`;
   img.src = `./images/${v}.png`;
   img.alt = v;
-  img.style.width = "3vh";
-  img.style.height = "3vh";
-  img.style.maxWidth = "3vw";
-  img.style.maxHeight = "3vw";
-  img.style.aspectRatio = "1/1";
+  img.classList.add("piece");
   return [k, img];
 }));
 initialize();
