@@ -81,6 +81,9 @@ class Property {
     readonly price: number
     // readonly card: HTMLElement
     owner: Inventory = GAME.bank
+    get owned()
+        { return this.owner !== GAME.bank }
+
     houses = 0
     isMortgaged = false
 
@@ -181,6 +184,21 @@ class Property {
     }
 
     auction() {} // TODO
+
+    action() {
+        if (this.owner === GAME.currPlayer)
+            { return }
+        if (this.owned) {
+            GAME.currPlayer!.debt = [this.owner, this.rent]
+            // GAME.currPlayer!.debt[1] <= GAME.currPlayer!.money
+            //     ? loadPrompt(PROMPTS.canPay)
+            //     : loadPrompt(PROMPTS.cantPay)
+            return
+        }
+        this.price <= GAME.currPlayer!.money
+            ? loadPrompt(PROMPTS.unownedCanAfford)
+            : loadPrompt(PROMPTS.unownedCantAfford)
+    }
 }
 
 class Deck extends Array<Card> {
@@ -206,7 +224,7 @@ class Inventory {
     money: number = 0
     readonly props = new Set<Property>()
     readonly cards = new Set<Card>()
-    readonly debt: { [key: string]: number } = { }
+    debt: [Inventory, number] | [] = []
 
     canPay(amount: number): boolean
         { return this.money >= amount }
@@ -276,32 +294,45 @@ class Player extends Inventory {
     inJail = false
     doubles = 0
     bailRolls = 0
-    readonly piece: string
+    readonly piece: HTMLImageElement
 
-    readonly pos = new WrapIter(GAME.boardmap.length)
+    readonly pos = new WrapIter(GAME.boardmap.length - 1)
     get position() { return this.pos.currVal }
 
-    constructor(name: string, piece: string) {
+    constructor(name: string, piece: HTMLImageElement) {
         super()
         this.name = name
         this.piece = piece
+        GAME.boardmap[0].appendChild(this.piece)
+    }
+
+    roll() {
+        let d = GAME.dice.roll()
+        // console.log(d.peek())
+        if (d.unique() === 1)
+            if (++this.doubles == 3)
+                this.goToJail()
+        this.moveN(d.sum())
     }
 
     moveN(nTiles: number): number {
-        setTimeout(() => this.updatePosition(), 500)
-        if (nTiles < 0) {
-            this.pos.prev()
-            return this.moveN(nTiles - 1)
-        }
-        if (nTiles > 0) {
-            this.pos.next()
-            return this.moveN(nTiles + 1)
-        }
+        setTimeout(() => {
+            if (nTiles < 0) {
+                this.pos.prev()
+                this.updatePosition()
+                return this.moveN(nTiles + 1)
+            }
+            if (nTiles > 0) {
+                this.pos.next()
+                this.updatePosition()
+                return this.moveN(nTiles - 1)
+            }
+        }, 300)
         return this.position
     }
 
     moveTo(tile: number): number {
-        setTimeout(() => this.updatePosition(), 500)
+        this.updatePosition()
         if (!this.pos.includes(tile)
         || this.position == tile)
             return this.position
@@ -310,13 +341,15 @@ class Player extends Inventory {
     }
 
     updatePosition() {
-        let piece = document.getElementById(`piece.${this.piece}`)
+        let piece = GAME.currPlayer?.piece
         if (!piece)
             return (console.warn("updatePosition: Piece not found."), 404)
         piece.remove()
         GAME.boardmap[this.position].appendChild(piece)
         return this.position
     }
+
+    doTile() {} // TODO
 
     goToJail(): number {
         this.inJail = true
@@ -372,94 +405,22 @@ class Bank extends Inventory {
     }
 }
 
-class PromptButton extends HTMLButtonElement {
-    constructor(text: string, fn: () => any) {
-        super()
-        this.value = text
-        this.onclick = fn
-    }
+function loadPrompt(prompt: Array<HTMLButtonElement>) {
+    PROMPT.innerHTML = ""
+    prompt.forEach(b => PROMPT.appendChild(b))
+    return prompt
 }
-
-class Prompt extends Array<PromptButton> {
-    load() {
-        let prompt = document.getElementById("prompt")!
-        prompt.innerHTML = ""
-        this.forEach(b => prompt.appendChild(b))
-    }
-}
-
-// function options(...ops: string[]) {
-//     for (let button of [...document.getElementsByTagName("button")]) {
-//         if (button.parentElement !== document.getElementById("prompt")!)
-//             { continue }
-//         button.style.visibility
-//             = ops.includes(button.name)
-//                 ? "visible" : "hidden"
-//     }
-// }
-
-// function nextPlayer() {
-//     const players = GAME.turnOrder.filter(p => GAME.players.has(p))
-//     const iter = new WrapIter(0, players.length, GAME.currPlayer!.position)
-//     GAME.currPlayer = players[iter.next()]
-// }
-
-// function passTurn() {
-//     options()
-//     setTimeout(nextPlayer, 500)
-// }
-
-// function mainPhase() {
-//     const player = GAME.currPlayer!
-//     // player.loadInventory()
-//     player.inJail
-//         ? options("payBail", "bailCard", "roll", "trade", "manage")
-//         : options("roll", "trade", "manage")
-// }
-
-// function endStep()
-//     { setTimeout(() => options("pass", "trade", "manage"), 500) }
-
-// // const round = ( x: number, towards: number ) =>
-// //     (~~towards < x && x < 0) ? Math.floor(x)
-// //     : (0 < x && x < ~~towards) ? Math.ceil(x)
-// //     : ~~x
-
-// function roll() {
-//     options()
-//     const player = GAME.currPlayer!
-//     setTimeout(() => GAME.dice.roll(), 500)
-//     if (player.inJail) {
-//         if (GAME.dice.unique() === 1) {
-//             player.inJail = false
-//             player.moveN(GAME.dice.sum())
-//         }
-//         else if (player.bailRolls >= 3)
-//             setTimeout(() => {
-//                 !player.cards ? options("payBail")
-//                 : options("payBail", "bailCard")
-//             }, 500)
-//         endStep()
-//         { return }
-//     }
-// }
-
-// function payBail() {
-//     const player = GAME.currPlayer!
-//     player.pay(GAME.bank, 50)
-//     player.pos.currVal = 10
-// }
 
 const INVENTORY = document.getElementById("inv")!
-const BOARD = document.getElementById("board")!
-const PROMPT = document.getElementById("prompt")!
+const BOARD     = document.getElementById("board")!
+const PROMPT    = document.getElementById("prompt")!
 const GAME = {
     bank: new Bank(),
     players: new Set<Player>(),
     propertySets: <{ [key: string]: Set<Property> }>{ },
     turnOrder: <Player[]>[],
     currPlayer: <Player | null>null,
-    board: new Array<() => { }>(),
+    board: new Array<() => void>(),
     decks: {
         "Chance": new Deck(),
         "Community Chest": new Deck()
@@ -490,7 +451,7 @@ const PROMPT_BUTTONS = Object.fromEntries(Object.entries({
     },
     "roll": { // roll
         text: "Roll",
-        fn: () => {}
+        fn: () => GAME.currPlayer?.roll()
     },
     "pass": { // no roll
         text: "End Turn",
@@ -528,4 +489,58 @@ const PROMPT_BUTTONS = Object.fromEntries(Object.entries({
         text: "",
         fn: () => {}
     },
-}).map(([k, {text, fn}]) => [k, new PromptButton(text, fn)]))
+}).map(([k, v]) => {
+    let button = document.createElement("button")
+    button.textContent = v.text
+    button.onclick = v.fn
+    return [k, button]
+}))
+const PROMPTS = Object.fromEntries(Object.entries({
+    roll: ["roll"],
+    mainPhase: ["roll", "trade", "manage"],
+    endStep: ["pass", "trade", "manage"],
+    unownedCanAfford: ["buy", "auction"],
+    unownedCantAfford: ["auction", "trade", "manage"],
+    canPay: ["pay"], // chance cards bankrupt if no money?
+    cantPay: ["bankrupt", "trade", "manage"],
+    bankrupt: ["bankrupt"],
+    jail: ["pay", "roll", "trade", "manage"],
+    bailRoll: ["roll", "trade", "manage"],
+    payBail: ["pay"], // can you manage properties or do you just go bankrupt?
+}).map(([k, ps]) => [k, ps.map(p => PROMPT_BUTTONS[p])]))
+const PIECES = Object.fromEntries(Object.entries({
+    DOG: "dog",
+    CAT: "cat",
+}).map(([k, v]) => {
+    let img = document.createElement("img")
+    img.id = `piece.${v}`
+    img.src = `./images/${v}.png`
+    img.alt = v;
+    img.classList.add("piece")
+    return [k, img]
+}))
+
+/*
+img {
+  width: 3vh;
+    max-width: 3vw;
+  height: 3vh;
+    max-height: 3vw;
+  aspect-ratio: 1/1;
+}
+ */
+
+initialize()
+
+function initialize() {
+    // console.log(GAME.boardmap);
+    [ new Player("Player 1", PIECES.DOG),
+      new Player("Player 2", PIECES.CAT) ]
+        .forEach(p => {
+            GAME.players.add(p)
+            GAME.turnOrder.push(p)
+        })
+    GAME.currPlayer = GAME.turnOrder[0]
+    GAME.players.forEach(a => a.piece)
+    loadPrompt(PROMPTS["roll"])
+}
