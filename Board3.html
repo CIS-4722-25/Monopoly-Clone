@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>'Opoly</title>
+    <style>
+        :root {
+            --corner: calc(100% / 11 * (7/5));
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+
+            width:  100%;
+            height: 100%;
+        }
+        body
+            { display: flex; }
+        #board {
+            /* background-image: url("board.png"); */
+            background-color: #cec;
+            background-size: cover;
+            border-collapse: collapse;
+            margin: 1em;
+            padding: 1em;
+
+            aspect-ratio: 1;
+            height: 90%;
+            max-width:  50vw;
+            max-height: 50vw;
+        }
+        .piece {
+            display: block;
+            margin: auto;
+
+            aspect-ratio: 3vh;
+            width: 3vh;
+                max-width: 3vh;
+            height: 3vh;
+                max-height: 3vh;
+        }
+        #board tr:first-of-type td, #board tr:last-of-type td
+            { width: calc(100% * (1.5 / 18.5)); }
+        #board tr td:first-of-type, #board tr td:last-of-type
+            { height: calc(100% * (1.5 / 18.5)); }
+        #board tr:first-of-type td:first-of-type,
+        #board tr:last-of-type td:last-of-type {
+            width:  var(--corner);
+            height: var(--corner);
+        }
+        #board tr:first-of-type td, #board tr:last-of-type td,
+        #board td:first-of-type, #board td:last-of-type
+            { border: solid black 3px; }
+        #right-ui {
+            display: block;
+            margin: 1em;
+            margin-left: 0;
+            width: 100%;
+            height: 90%;
+            max-height: 50vw;
+        }
+        #right-ui>* {
+            border: solid black 3px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        #inv {
+            background-color: orange;
+            margin-bottom: 1em;
+            width: 100%;
+            height: calc(70% - 1em);
+        }
+        #prompt {
+            /* background-color: magenta; */
+            width: 100%;
+            height: 30%;
+        }
+    </style>
+</head>
+<body>
+    <table id="board">
+        <script>
+            (board => Array(11).keys().forEach(() =>
+                (tr => Array(11).keys().forEach(() =>
+                    tr.insertCell()))(board.insertRow())
+            ))(document.getElementById("board"))
+        </script>
+    </table>
+    <div id="right-ui">
+        <table id="inv">
+            <script></script>
+        </table>
+        <div id="prompt">
+            <script></script>
+        </div>
+    </div>
+</body>
+<script src="out/monopoly.js"></script>
+</html>
