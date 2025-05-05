@@ -19,7 +19,9 @@ class Dice extends Array {
     super(...[...new Array(+count)].map(() => new Die(sides)));
   }
   roll() {
-    return this.map((_, i) => this[i].roll()), this;
+    this.map((_, i) => this[i].roll());
+    this.display();
+    return this;
   }
   peek() {
     return this.map((d) => d.value);
@@ -29,6 +31,12 @@ class Dice extends Array {
   }
   unique() {
     return new Set(this.peek()).size;
+  }
+  display() {
+    const DICE = ["\u2680", "\u2681", "\u2682", "\u2683", "\u2684", "\u2685"];
+    const cell = document.getElementById("board").getElementsByTagName("tr")[5].getElementsByTagName("td")[5];
+    cell.classList.add("dice");
+    cell.innerText = this.peek().map((d) => DICE[d - 1]).join("");
   }
 }
 function denominations(money) {
@@ -54,10 +62,10 @@ class WrapIter {
     this.#curr = !currVal ? this.#min : Math.min(Math.max(currVal, this.#min), this.#max);
   }
   next(currVal = this.#curr) {
-    return this.#curr = currVal > this.#max ? this.#min : currVal + 1;
+    return this.#curr = this.#max <= currVal ? this.#min : currVal + 1;
   }
   prev(currVal = this.#curr) {
-    return this.#curr = this.#min > currVal ? this.#max : currVal - 1;
+    return this.#curr = currVal <= this.#min ? this.#max : currVal - 1;
   }
   includes(value) {
     return this.#min <= value && value <= this.#max;
@@ -170,14 +178,18 @@ class Property {
   }
   // TODO
   action() {
-    if (this.owner === GAME.currPlayer) {
+    let p = GAME.currPlayer;
+    if (this.owner === p) {
       return;
     }
     if (this.owned) {
-      GAME.currPlayer.debt = [this.owner, this.rent];
-      return;
+      p.debt = [this.owner, this.rent];
+      p.doDebt();
+      {
+        return;
+      }
     }
-    this.price <= GAME.currPlayer.money ? loadPrompt(PROMPTS.unownedCanAfford) : loadPrompt(PROMPTS.unownedCantAfford);
+    p.doUnowned();
   }
 }
 class Deck extends Array {
@@ -256,7 +268,7 @@ class Player extends Inventory {
   doubles = 0;
   bailRolls = 0;
   piece;
-  pos = new WrapIter(GAME.boardmap.length - 1);
+  pos = new WrapIter(GAME.boardmap.length);
   get position() {
     return this.pos.currVal;
   }
@@ -268,9 +280,15 @@ class Player extends Inventory {
   }
   roll() {
     let d = GAME.dice.roll();
+    console.log(`[${d.peek()}] \u2192 (${d.sum()})`);
     if (d.unique() === 1) {
-      if (++this.doubles == 3)
+      this.doubles++;
+      if (this.doubles == 3) {
         this.goToJail();
+        {
+          return;
+        }
+      }
     }
     this.moveN(d.sum());
   }
@@ -281,20 +299,14 @@ class Player extends Inventory {
         this.updatePosition();
         return this.moveN(nTiles + 1);
       }
-      if (nTiles > 0) {
+      if (0 < nTiles) {
         this.pos.next();
         this.updatePosition();
         return this.moveN(nTiles - 1);
       }
+      this.doTile();
     }, 300);
     return this.position;
-  }
-  moveTo(tile) {
-    this.updatePosition();
-    if (!this.pos.includes(tile) || this.position == tile)
-      return this.position;
-    this.pos.next();
-    return this.moveTo(tile);
   }
   updatePosition() {
     let piece = GAME.currPlayer?.piece;
@@ -302,16 +314,89 @@ class Player extends Inventory {
       return console.warn("updatePosition: Piece not found."), 404;
     piece.remove();
     GAME.boardmap[this.position].appendChild(piece);
+    if (this.position === 0)
+      GAME.bank.pay(this, 200);
     return this.position;
   }
-  doTile() {
+  get propertyTile() {
+    return PROPS.filter((p) => p.position === this.position)[0];
   }
-  // TODO
+  doDebt() {
+    loadPrompt(PROMPTS[this.money < GAME.currPlayer.debt[1] ? "debtCantAfford" : "debtCanAfford"]);
+  }
+  doUnowned() {
+    loadPrompt(PROMPTS[this.propertyTile.value <= this.money ? "unownedCanAfford" : "unownedCantAfford"]);
+  }
+  doNextPhase() {
+    loadPrompt(PROMPTS[GAME.dice.unique() === 1 ? "mainPhase" : "endStep"]);
+  }
+  draw(deckName) {
+    let deck = GAME.decks[deckName];
+    let card = deck.draw();
+    card.effect();
+    deck.bottom(card);
+  }
+  doTile() {
+    let pos = this.position;
+    switch (pos) {
+      case 4:
+        this.debt = [GAME.bank, 200];
+        this.doDebt();
+        {
+          return;
+        }
+      case 30:
+        this.goToJail();
+        {
+          return;
+        }
+      case 38:
+        this.debt = [GAME.bank, 100];
+        this.doDebt();
+        {
+          return;
+        }
+      case 2:
+      case 17:
+      case 33:
+        this.draw("Community Chest");
+        {
+          return;
+        }
+      case 7:
+      case 22:
+      case 36:
+        this.draw("Chance");
+        {
+          return;
+        }
+    }
+    let prop = [...PROPS].filter((p) => p.position === pos)[0];
+    console.log(prop);
+    if (prop)
+      prop.action();
+  }
+  doStartTurn() {
+    loadPrompt(PROMPTS[!this.inJail ? "mainPhase" : 50 < this.money ? "bailCanAfford" : "bailCantAfford"]);
+  }
+  doPass() {
+    let p = new WrapIter(GAME.turnOrder.length);
+    GAME.currPlayer = GAME.turnOrder[p.next(GAME.turnOrder.indexOf(this))];
+    GAME.currPlayer.doStartTurn();
+  }
+  doBuy() {
+    let p = this.propertyTile;
+    this.pay(GAME.bank, p.value);
+    this.props.add(p);
+    p.owner = this;
+    console.log(this.props);
+  }
   goToJail() {
     this.inJail = true;
     this.doubles = 0;
-    this.pos.currVal = 11;
+    this.pos.currVal = 10;
     this.updatePosition();
+    loadPrompt(PROMPTS["endStep"]);
     return this.position;
   }
   bankrupt(toWhom) {
@@ -358,10 +443,10 @@ class Bank extends Inventory {
 }
 function loadPrompt(prompt) {
   PROMPT.innerHTML = "";
-  prompt.forEach((b) => PROMPT.appendChild(b));
+  prompt.forEach((b) => PROMPT.appendChild(PROMPT_BUTTONS[b]));
   return prompt;
 }
-const INVENTORY = document.getElementById("inv");
+const INV = document.getElementById("inv");
 const BOARD = document.getElementById("board");
 const PROMPT = document.getElementById("prompt");
 const GAME = {
@@ -415,8 +500,7 @@ const PROMPT_BUTTONS = Object.fromEntries(Object.entries({
   "pass": {
     // no roll
     text: "End Turn",
-    fn: () => {
-    }
+    fn: () => GAME.currPlayer?.doPass()
   },
   "bailRoll": {
     // jail
@@ -434,18 +518,23 @@ const PROMPT_BUTTONS = Object.fromEntries(Object.entries({
     // unowned
     text: "Buy",
     fn: () => {
+      GAME.currPlayer.doBuy();
+      GAME.currPlayer.doNextPhase();
     }
   },
   "auction": {
     // unowned
-    text: "Aunction",
+    text: "Auction",
     fn: () => {
     }
   },
-  "payRent": {
+  "pay": {
     // owe rent
-    text: "Pay Rent",
+    text: "Pay",
     fn: () => {
+      let p = GAME.currPlayer;
+      p.pay(p.debt[0], p.debt[1]);
+      p.doNextPhase();
     }
   },
   "bid": {
@@ -473,20 +562,20 @@ const PROMPT_BUTTONS = Object.fromEntries(Object.entries({
   return [k, button];
 }));
 const PROMPTS = Object.fromEntries(Object.entries({
-  roll: ["roll"],
   mainPhase: ["roll", "trade", "manage"],
   endStep: ["pass", "trade", "manage"],
   unownedCanAfford: ["buy", "auction"],
   unownedCantAfford: ["auction", "trade", "manage"],
-  canPay: ["pay"],
+  debtCanAfford: ["pay", "trade", "manage"],
   // chance cards bankrupt if no money?
-  cantPay: ["bankrupt", "trade", "manage"],
+  debtCantAfford: ["bankrupt", "trade", "manage"],
   bankrupt: ["bankrupt"],
-  jail: ["pay", "roll", "trade", "manage"],
-  bailRoll: ["roll", "trade", "manage"],
-  payBail: ["pay"]
+  bailCanAfford: ["pay", "roll", "trade", "manage"],
+  bailCantAfford: ["roll", "trade", "manage"],
+  mustPayBail: ["pay"],
   // can you manage properties or do you just go bankrupt?
-}).map(([k, ps]) => [k, ps.map((p) => PROMPT_BUTTONS[p])]));
+  reset: []
+}));
 const PIECES = Object.fromEntries(Object.entries({
   DOG: "dog",
   CAT: "cat"
@@ -498,6 +587,192 @@ const PIECES = Object.fromEntries(Object.entries({
   img.classList.add("piece");
   return [k, img];
 }));
+const PROPS = [
+  {
+    "position": 1,
+    "name": "Mediterranean Avenue",
+    "set": "brown",
+    "price": 60,
+    "rent": [2, 10, 30, 90, 160, 250]
+  },
+  {
+    "position": 3,
+    "name": "Baltic Avenue",
+    "set": "brown",
+    "price": 60,
+    "rent": [4, 20, 60, 180, 320, 450]
+  },
+  {
+    "position": 6,
+    "name": "Oriental Avenue",
+    "set": "sky",
+    "price": 100,
+    "rent": [6, 30, 90, 270, 400, 550]
+  },
+  {
+    "position": 8,
+    "name": "Vermont Avenue",
+    "set": "sky",
+    "price": 100,
+    "rent": [6, 30, 90, 270, 400, 550]
+  },
+  {
+    "position": 9,
+    "name": "Connecticut Avenue",
+    "set": "sky",
+    "price": 120,
+    "rent": [8, 40, 100, 300, 450, 600]
+  },
+  {
+    "position": 11,
+    "name": "St. Charles Place",
+    "set": "magenta",
+    "price": 140,
+    "rent": [10, 50, 150, 450, 625, 750]
+  },
+  {
+    "position": 13,
+    "name": "States Avenue",
+    "set": "magenta",
+    "price": 140,
+    "rent": [10, 50, 150, 450, 625, 750]
+  },
+  {
+    "position": 14,
+    "name": "Virginia Avenue",
+    "set": "magenta",
+    "price": 160,
+    "rent": [12, 60, 180, 500, 700, 900]
+  },
+  {
+    "position": 16,
+    "name": "St. James Place",
+    "set": "orange",
+    "price": 180,
+    "rent": [14, 70, 200, 550, 750, 950]
+  },
+  {
+    "position": 17,
+    "name": "Tennessee Avenue",
+    "set": "orange",
+    "price": 180,
+    "rent": [14, 70, 200, 550, 750, 950]
+  },
+  {
+    "position": 18,
+    "name": "New York Avenue",
+    "set": "orange",
+    "price": 200,
+    "rent": [16, 80, 220, 600, 800, 1e3]
+  },
+  {
+    "position": 21,
+    "name": "Kentucky Avenue",
+    "set": "red",
+    "price": 220,
+    "rent": [18, 90, 250, 700, 875, 1050]
+  },
+  {
+    "position": 23,
+    "name": "Indiana Avenue",
+    "set": "red",
+    "price": 220,
+    "rent": [18, 90, 250, 700, 875, 1050]
+  },
+  {
+    "position": 24,
+    "name": "Illinois Avenue",
+    "set": "red",
+    "price": 240,
+    "rent": [20, 100, 300, 750, 925, 1100]
+  },
+  {
+    "position": 26,
+    "name": "Atlantic Avenue",
+    "set": "yellow",
+    "price": 260,
+    "rent": [22, 110, 330, 800, 975, 1150]
+  },
+  {
+    "position": 27,
+    "name": "Ventnor Avenue",
+    "set": "yellow",
+    "price": 260,
+    "rent": [22, 110, 330, 800, 975, 1150]
+  },
+  {
+    "position": 29,
+    "name": "Marvin Gardens",
+    "set": "yellow",
+    "price": 280,
+    "rent": [24, 120, 360, 850, 1025, 1200]
+  },
+  {
+    "position": 31,
+    "name": "Pacific Avenue",
+    "set": "green",
+    "price": 300,
+    "rent": [26, 130, 390, 900, 1100, 1275]
+  },
+  {
+    "position": 32,
+    "name": "North Carolina Avenue",
+    "set": "green",
+    "price": 300,
+    "rent": [26, 130, 390, 900, 1100, 1275]
+  },
+  {
+    "position": 34,
+    "name": "Pennsylvania Avenue",
+    "set": "green",
+    "price": 320,
+    "rent": [28, 150, 450, 1e3, 1200, 1400]
+  },
+  {
+    "position": 37,
+    "name": "Park Place",
+    "set": "blue",
+    "price": 350,
+    "rent": [35, 175, 500, 1100, 1300, 1500]
+  },
+  {
+    "position": 39,
+    "name": "Boardwalk",
+    "set": "blue",
+    "price": 400,
+    "rent": [50, 200, 600, 1400, 1700, 2e3]
+  },
+  {
+    "position": 5,
+    "name": "Reading Railroad",
+    "set": "railroad"
+  },
+  {
+    "position": 15,
+    "name": "Pennsylvania Railroad",
+    "set": "railroad"
+  },
+  {
+    "position": 25,
+    "name": "B. & O. Railroad",
+    "set": "railroad"
+  },
+  {
+    "position": 35,
+    "name": "Short Line",
+    "set": "railroad"
+  },
+  {
+    "position": 12,
+    "name": "Electric Company",
+    "set": "utility"
+  },
+  {
+    "position": 28,
+    "name": "Water Works",
+    "set": "utility"
+  }
+].map((p) => new Property(p));
 initialize();
 function initialize() {
   [
@@ -509,5 +784,24 @@ function initialize() {
   });
   GAME.currPlayer = GAME.turnOrder[0];
   GAME.players.forEach((a) => a.piece);
-  loadPrompt(PROMPTS["roll"]);
+  [
+    {
+      deck: "Community Chest",
+      text: "Go back 3 spaces",
+      effect: () => {
+        GAME.currPlayer?.moveN(-3);
+      }
+    }
+  ].forEach((card) => GAME.decks["Community Chest"].push(card));
+  [
+    {
+      deck: "Chance",
+      text: "Go back 3 spaces",
+      effect: () => {
+        GAME.currPlayer?.moveN(-3);
+      }
+    }
+  ].forEach((card) => GAME.decks["Chance"].push(card));
+  GAME.dice.display();
+  loadPrompt(PROMPTS["mainPhase"]);
 }
