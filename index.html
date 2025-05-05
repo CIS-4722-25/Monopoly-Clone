@@ -11,21 +11,75 @@
       border: 1px solid black;
       border-collapse: separate;
       text-align: center;
-
     }
 
-  
-  .aspect-ratio-box::before {
-    content: "";
-    display: block;
-    padding-top: 100%;
-  }
+    #inv {
+      float: left;
+      width: 14%;
+      height: 96.2vh;
+    }
 
+    #promp {
+      margin: 1% auto;
+      float: right;
+      width: 15%;
+    }
+
+    #prompt tr {
+      height: 30vh;
+    }
+
+    #board {
+      width: 50%;
+      max-width: 95vh;
+      max-height: 100vh;
+      margin: 0.5% auto;
+      background-image: url(./Images/board.png);
+      background-size: contain;
+      aspect-ratio: 4 / 4;
+    }
+
+    #board td {
+      height: 7%;
+    }
+
+    #toprow,
+    #bottomrow {
+      height: 9%;
+      max-height: 9%;
+    }
+
+    #toprow,
+    #bottomrow td {
+      width: 5%;
+    }
+
+    #topleft,
+    #topright,
+    #bottomleft,
+    #bottomright {
+      width: 7%;
+    }
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .aspect-ratio-box::before {
+      content: "";
+      display: block;
+      padding-top: 100%;
+    }
+
+    .middlespace {
+      visibility: collapse;
+    }
   </style>
 </head>
 
 <body>
-  <table id="inv" style=" float: left; width: 14%; height: 96.2vh;">
+  <table id="inv">
     <tbody>
       <tr>
         <td>1</td>
@@ -83,77 +137,162 @@
   </table>
 
 
-  <table style="margin: 1% auto; float: right; width: 15%;" id="prompt">
+  <table id="prompt">
     <tbody>
-      <tr style="height: 30vh;">
+      <tr>
         <td>Message goes here!</td>
       </tr>
     </tbody>
   </table>
 
-  <table style="width: 50%; max-width: 95vh; max-height: 100vh; margin: 0.5% auto; background-image: url(./images/board.png); background-size:contain; aspect-ratio: 4 / 4;" id="board">
+  <table id="board">
     <tbody>
-      <tr style="height: 9%;">
+      <tr id="toprow">
+        <td id="topleft"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td id="topright"></td>
       </tr>
-      <tr style="height: 7%;">
+      <tr>
         <td></td>
-        <td colspan="9" rowspan="9"></td>
-        <td></td>
-      </tr>
-      <tr style="height: 7%;">
-        <td></td>
-        <td></td>
-      </tr>
-      <tr style="height: 7%;">
-        <td></td>
-        <td></td>
-      </tr>
-      <tr style="height: 7%;">
-        <td></td>
-        <td></td>
-      </tr>
-      <tr style="height: 7%;">
-        <td></td>
-        <td></td>
-      </tr>
-      <tr style="height: 7%;">
-        <td></td>
-        <td></td>
-      </tr>
-      <tr style="height: 7%;">
-        <td></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
         <td></td>
       </tr>
-      <tr style="height: 7%;">
+      <tr>
         <td></td>
-        <td></td>
-      </tr>
-      <tr style="height: 7%;">
-        <td></td>
-        <td></td>
-      </tr>
-      <tr style="height: 9%;">
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
         <td></td>
       </tr>
-
-
-
-
-
-
+      <tr>
+        <td></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td class="middlespace"></td>
+        <td></td>
+      </tr>
+      <tr id="bottomrow">
+        <td id="bottomleft"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td id="bottomright"></td>
+      </tr>
     </tbody>
   </table>
 </body>
 <script src="./js/monopoly.js"></script>
-</html>
 
+</html>
