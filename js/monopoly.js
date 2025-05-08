@@ -857,6 +857,8 @@ function initialize() {
       }
     }
   ].forEach((card) => GAME.decks["Chance"].push(card));
+  GAME.decks["Chance"].shuffle();
+  GAME.decks["Community Chest"].shuffle();
   GAME.dice.display();
   loadPrompt(PROMPTS["mainPhase"]);
   GAME.currPlayer.loadInventory();
