@@ -536,6 +536,10 @@ const PROMPT_BUTTONS = Object.fromEntries(Object.entries({
       p.doNextPhase();
     })(GAME.currPlayer)
   },
+  "dontBuy": {
+    text: "Don't Buy",
+    fn: () => GAME.currPlayer.doNextPhase()
+  },
   "auction": {
     // unowned
     text: "Auction",
@@ -543,7 +547,7 @@ const PROMPT_BUTTONS = Object.fromEntries(Object.entries({
     }
   },
   "pay": {
-    // owe rent
+    // owe
     text: "Pay",
     fn: () => {
       let p = GAME.currPlayer;
@@ -563,6 +567,10 @@ const PROMPT_BUTTONS = Object.fromEntries(Object.entries({
     fn: () => {
     }
   },
+  "back": {
+    text: "Back",
+    fn: () => GAME.currPlayer.doNextPhase()
+  },
   "": {
     // new option
     text: "",
@@ -576,18 +584,19 @@ const PROMPT_BUTTONS = Object.fromEntries(Object.entries({
   return [k, button];
 }));
 const PROMPTS = Object.fromEntries(Object.entries({
-  mainPhase: ["roll", "trade", "manage"],
-  endStep: ["pass", "trade", "manage"],
-  unownedCanAfford: ["buy", "auction"],
-  unownedCantAfford: ["auction", "trade", "manage"],
-  debtCanAfford: ["pay", "trade", "manage"],
+  mainPhase: ["roll", "manage"],
+  endStep: ["pass", "manage"],
+  unownedCanAfford: ["buy", "dontBuy"],
+  unownedCantAfford: ["manage"],
+  debtCanAfford: ["pay", "manage"],
   // chance cards bankrupt if no money?
-  debtCantAfford: ["bankrupt", "trade", "manage"],
+  debtCantAfford: ["bankrupt", "manage"],
   bankrupt: ["bankrupt"],
-  bailCanAfford: ["pay", "roll", "trade", "manage"],
-  bailCantAfford: ["roll", "trade", "manage"],
+  bailCanAfford: ["pay", "roll", "manage"],
+  bailCantAfford: ["roll", "manage"],
   mustPayBail: ["pay"],
   // can you manage properties or do you just go bankrupt?
+  manage: ["trade", "back"],
   reset: []
 }));
 const PIECES = Object.fromEntries(Object.entries({
