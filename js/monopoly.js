@@ -444,6 +444,7 @@ class Player extends Inventory {
       ul.appendChild(li);
     });
     INV.appendChild(ul);
+    document.getElementById("money").innerText = `$${this.money}`;
   }
 }
 class Bank extends Inventory {
@@ -810,9 +811,23 @@ function initialize() {
   [
     {
       deck: "Community Chest",
-      text: "Go back 3 spaces",
+      text: "Advance to Go",
       effect: () => {
-        GAME.currPlayer?.moveN(-3);
+        GAME.currPlayer.pos.currVal = 0;
+        GAME.currPlayer.updatePosition();
+      }
+    },
+    {
+      deck: "Community Chest",
+      text: "From sale of stock you get $50",
+      effect: () => GAME.bank.pay(GAME.currPlayer, 50)
+    },
+    {
+      deck: "Community Chest",
+      text: "Go to Jail. Go directly to jail, do not pass Go, do not collect $200",
+      effect: () => {
+        GAME.currPlayer.pos.currVal = 10;
+        GAME.currPlayer.updatePosition();
       }
     }
   ].forEach((card) => GAME.decks["Community Chest"].push(card));
@@ -822,6 +837,22 @@ function initialize() {
       text: "Go back 3 spaces",
       effect: () => {
         GAME.currPlayer?.moveN(-3);
+      }
+    },
+    {
+      deck: "Chance",
+      text: "Advance to Boardwalk.",
+      effect: () => {
+        GAME.currPlayer.pos.currVal = 39;
+        GAME.currPlayer.updatePosition();
+      }
+    },
+    {
+      deck: "Chance",
+      text: "Speeding fine $15.",
+      effect: () => {
+        GAME.currPlayer.pay(GAME.bank, 15);
+        GAME.currPlayer.loadInventory();
       }
     }
   ].forEach((card) => GAME.decks["Chance"].push(card));
