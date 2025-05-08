@@ -13,10 +13,17 @@
       text-align: center;
     }
 
-    #inv {
+    .inv {
       float: left;
       width: 14%;
-      height: 96.2vh;
+      height: 90.2vh;
+      border: 1px solid black;
+    }
+
+    .money{
+      position: absolute;
+      bottom: 10px;
+      border: 1px solid black;
     }
 
     #promp {
@@ -25,8 +32,7 @@
       width: 15%;
     }
 
-    .dice {
-      font-size: 4em;
+    #dice {
       position: fixed;
     }
 
@@ -48,7 +54,7 @@
     #board tr:last-of-type td,
     #board td:first-of-type,
     #board td:last-of-type {
-    border: solid red 3px;
+    border: solid black 3px;
     }
 
 
@@ -94,8 +100,13 @@
 </head>
 
 <body>
-  <div id="inv"></div>
-  <div id="money"></div>
+  <div class="inv">
+
+  </div>
+
+  <div class="money">
+    <p>money:</p>
+  </div>
 
   <table id="prompt">
     <tbody>
@@ -254,5 +265,5 @@
   </table>
 </body>
 <script src="./js/monopoly.js"></script>
-<!-- Unofficial student project | © Hasbro, Inc. -->
+
 </html>
