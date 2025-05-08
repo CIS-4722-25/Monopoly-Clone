@@ -389,6 +389,7 @@ class Player extends Inventory {
     loadPrompt(PROMPTS[!this.inJail ? "mainPhase" : 50 < this.money ? "bailCanAfford" : "bailCantAfford"]);
   }
   doPass() {
+    GAME.currPlayer.doubles = 0;
     let p = new WrapIter(GAME.turnOrder.length);
     GAME.currPlayer = GAME.turnOrder[p.next(GAME.turnOrder.indexOf(this))];
     GAME.currPlayer.doStartTurn();
