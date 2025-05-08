@@ -34,9 +34,17 @@ class Dice extends Array {
   }
   display() {
     const DICE = ["\u2680", "\u2681", "\u2682", "\u2683", "\u2684", "\u2685"];
-    const cell = document.getElementById("board").getElementsByTagName("tr")[5].getElementsByTagName("td")[5];
-    cell.classList.add("dice");
-    cell.innerText = this.peek().map((d) => DICE[d - 1]).join("");
+    const CELL = document.getElementById("board").getElementsByTagName("tr")[5].getElementsByTagName("td")[5];
+    CELL.innerText = "";
+    CELL.classList.add("dice");
+    CELL.style.transform = `rotate(${Math.random() * 360}deg)`;
+    this.peek().map((d) => {
+      let die = document.createElement("div");
+      die.style.transform = `rotate(${Math.random() * 360}deg)`;
+      die.style.paddingTop = `${Math.random() * 0.5}em`;
+      die.innerText = DICE[d - 1];
+      CELL.appendChild(die);
+    });
   }
 }
 function denominations(money) {
@@ -377,6 +385,7 @@ class Player extends Inventory {
       prop.action();
   }
   doStartTurn() {
+    this.loadInventory();
     loadPrompt(PROMPTS[!this.inJail ? "mainPhase" : 50 < this.money ? "bailCanAfford" : "bailCantAfford"]);
   }
   doPass() {
@@ -426,12 +435,16 @@ class Player extends Inventory {
       return true;
     }
   }
-  // loadInventory() {
-  //     let cards = [...document.getElementsByClassName("card")]
-  //     cards.forEach(c => c.classList.add("unowned"))
-  //     let owned = [...this.props].map(p => p.card)
-  //     owned.forEach(c => c.classList.remove("unowned"))
-  // }
+  loadInventory() {
+    INV.innerHTML = "";
+    let ul = document.createElement("ul");
+    this.props.forEach((p) => {
+      let li = document.createElement("li");
+      li.innerText = p.name;
+      ul.appendChild(li);
+    });
+    INV.appendChild(ul);
+  }
 }
 class Bank extends Inventory {
   houses = 12;
@@ -517,10 +530,11 @@ const PROMPT_BUTTONS = Object.fromEntries(Object.entries({
   "buy": {
     // unowned
     text: "Buy",
-    fn: () => {
-      GAME.currPlayer.doBuy();
-      GAME.currPlayer.doNextPhase();
-    }
+    fn: () => ((p) => {
+      p.doBuy();
+      p.loadInventory();
+      p.doNextPhase();
+    })(GAME.currPlayer)
   },
   "auction": {
     // unowned
