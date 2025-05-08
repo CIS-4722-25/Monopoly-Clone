@@ -857,6 +857,6 @@ function initialize() {
     }
   ].forEach((card) => GAME.decks["Chance"].push(card));
   GAME.dice.display();
-  GAME.currPlayer.loadInventory();
   loadPrompt(PROMPTS["mainPhase"]);
+  GAME.currPlayer.loadInventory();
 }
