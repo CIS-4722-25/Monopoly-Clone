@@ -288,7 +288,6 @@ class Player extends Inventory {
   }
   roll() {
     let d = GAME.dice.roll();
-    console.log(`[${d.peek()}] \u2192 (${d.sum()})`);
     if (d.unique() === 1) {
       this.doubles++;
       if (this.doubles == 3) {
@@ -341,6 +340,7 @@ class Player extends Inventory {
   draw(deckName) {
     let deck = GAME.decks[deckName];
     let card = deck.draw();
+    console.log(card.text);
     card.effect();
     deck.bottom(card);
   }
@@ -380,7 +380,6 @@ class Player extends Inventory {
         }
     }
     let prop = [...PROPS].filter((p) => p.position === pos)[0];
-    console.log(prop);
     if (prop)
       prop.action();
   }
@@ -399,7 +398,6 @@ class Player extends Inventory {
     this.pay(GAME.bank, p.value);
     this.props.add(p);
     p.owner = this;
-    console.log(this.props);
   }
   goToJail() {
     this.inJail = true;
@@ -459,6 +457,7 @@ class Bank extends Inventory {
 function loadPrompt(prompt) {
   PROMPT.innerHTML = "";
   prompt.forEach((b) => PROMPT.appendChild(PROMPT_BUTTONS[b]));
+  Object.values(PROMPT_BUTTONS).forEach((b) => b.disabled = false);
   return prompt;
 }
 const INV = document.getElementById("inv");
@@ -582,7 +581,8 @@ const PROMPT_BUTTONS = Object.fromEntries(Object.entries({
 }).map(([k, v]) => {
   let button = document.createElement("button");
   button.textContent = v.text;
-  button.onclick = v.fn;
+  button.onclick = () => Object.values(PROMPT_BUTTONS).forEach((b) => b.disabled = true);
+  button.addEventListener("click", v.fn);
   return [k, button];
 }));
 const PROMPTS = Object.fromEntries(Object.entries({
