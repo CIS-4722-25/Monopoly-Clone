@@ -553,6 +553,8 @@ const PROMPT_BUTTONS = Object.fromEntries(Object.entries({
     text: "Pay",
     fn: () => {
       let p = GAME.currPlayer;
+      if (p.inJail)
+        p.debt = [GAME.bank, 50];
       p.pay(p.debt[0], p.debt[1]);
       p.doNextPhase();
     }
