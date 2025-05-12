@@ -63,14 +63,14 @@
         "rent": [ 14, 70, 200, 550, 750, 950 ]
     },
     {
-        "position": 17,
+        "position": 18,
         "name": "Tennessee Avenue",
         "set": "orange",
         "price": 180,
         "rent": [ 14, 70, 200, 550, 750, 950 ]
     },
     {
-        "position": 18,
+        "position": 19,
         "name": "New York Avenue",
         "set": "orange",
         "price": 200,
