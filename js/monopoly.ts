@@ -399,6 +399,8 @@ class Player extends Inventory {
         console.log(card.text)
         card.effect()
         deck.bottom(card)
+        if (this.inJail)
+            { return }
         this.doNextPhase()
     }
 
@@ -855,7 +857,7 @@ function initialize() {
         {
             deck: "Community Chest",
             text: "Go to Jail. Go directly to jail, do not pass Go, do not collect $200",
-            effect: () => GAME.currPlayer!.goToJail(),
+            effect: GAME.currPlayer!.goToJail,
         },
     ].forEach(card =>
         GAME.decks["Community Chest"]
