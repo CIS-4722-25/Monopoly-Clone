@@ -846,6 +846,7 @@ function initialize() {
       effect: () => {
         GAME.currPlayer.pos.currVal = 39;
         GAME.currPlayer.updatePosition();
+        GAME.currPlayer.doTile();
       }
     },
     {
