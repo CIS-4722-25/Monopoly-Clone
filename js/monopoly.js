@@ -445,7 +445,7 @@ class Player extends Inventory {
       ul.appendChild(li);
     });
     INV.appendChild(ul);
-    document.getElementById("money").innerText = `$${this.money}`;
+    document.getElementById("money").innerText = `${this.name}: $${this.money}`;
   }
 }
 class Bank extends Inventory {
