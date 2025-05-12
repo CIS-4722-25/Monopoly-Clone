@@ -827,10 +827,7 @@ function initialize() {
     {
       deck: "Community Chest",
       text: "Go to Jail. Go directly to jail, do not pass Go, do not collect $200",
-      effect: () => {
-        GAME.currPlayer.pos.currVal = 10;
-        GAME.currPlayer.updatePosition();
-      }
+      effect: () => GAME.currPlayer.goToJail()
     }
   ].forEach((card) => GAME.decks["Community Chest"].push(card));
   [
