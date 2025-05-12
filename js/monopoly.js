@@ -458,6 +458,7 @@ function loadPrompt(prompt) {
   PROMPT.innerHTML = "";
   prompt.forEach((b) => PROMPT.appendChild(PROMPT_BUTTONS[b]));
   Object.values(PROMPT_BUTTONS).forEach((b) => b.disabled = false);
+  GAME.currPlayer.loadInventory();
   return prompt;
 }
 const INV = document.getElementById("inv");
