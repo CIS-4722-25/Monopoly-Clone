@@ -343,10 +343,18 @@ class Player extends Inventory {
     console.log(card.text);
     card.effect();
     deck.bottom(card);
+    this.doNextPhase();
   }
   doTile() {
     let pos = this.position;
     switch (pos) {
+      case 0:
+      case 10:
+      case 20:
+        this.doNextPhase();
+        {
+          return;
+        }
       case 4:
         this.debt = [GAME.bank, 200];
         this.doDebt();
@@ -618,186 +626,186 @@ const PIECES = Object.fromEntries(Object.entries({
 const PROPS = [
   {
     "position": 1,
-    "name": "Mediterranean Avenue",
+    "name": "Mediterranean Avenue (MA)",
     "set": "brown",
     "price": 60,
     "rent": [2, 10, 30, 90, 160, 250]
   },
   {
     "position": 3,
-    "name": "Baltic Avenue",
+    "name": "Baltic Avenue (BA)",
     "set": "brown",
     "price": 60,
     "rent": [4, 20, 60, 180, 320, 450]
   },
   {
     "position": 6,
-    "name": "Oriental Avenue",
+    "name": "Oriental Avenue (OA)",
     "set": "sky",
     "price": 100,
     "rent": [6, 30, 90, 270, 400, 550]
   },
   {
     "position": 8,
-    "name": "Vermont Avenue",
+    "name": "Vermont Avenue (VTA)",
     "set": "sky",
     "price": 100,
     "rent": [6, 30, 90, 270, 400, 550]
   },
   {
     "position": 9,
-    "name": "Connecticut Avenue",
+    "name": "Connecticut Avenue (CA)",
     "set": "sky",
     "price": 120,
     "rent": [8, 40, 100, 300, 450, 600]
   },
   {
     "position": 11,
-    "name": "St. Charles Place",
+    "name": "St. Charles Place (SCP)",
     "set": "magenta",
     "price": 140,
     "rent": [10, 50, 150, 450, 625, 750]
   },
   {
     "position": 13,
-    "name": "States Avenue",
+    "name": "States Avenue (STA)",
     "set": "magenta",
     "price": 140,
     "rent": [10, 50, 150, 450, 625, 750]
   },
   {
     "position": 14,
-    "name": "Virginia Avenue",
+    "name": "Virginia Avenue (VIA)",
     "set": "magenta",
     "price": 160,
     "rent": [12, 60, 180, 500, 700, 900]
   },
   {
     "position": 16,
-    "name": "St. James Place",
+    "name": "St. James Place (SJP)",
     "set": "orange",
     "price": 180,
     "rent": [14, 70, 200, 550, 750, 950]
   },
   {
     "position": 18,
-    "name": "Tennessee Avenue",
+    "name": "Tennessee Avenue (TA)",
     "set": "orange",
     "price": 180,
     "rent": [14, 70, 200, 550, 750, 950]
   },
   {
     "position": 19,
-    "name": "New York Avenue",
+    "name": "New York Avenue (NYA)",
     "set": "orange",
     "price": 200,
     "rent": [16, 80, 220, 600, 800, 1e3]
   },
   {
     "position": 21,
-    "name": "Kentucky Avenue",
+    "name": "Kentucky Avenue (KA)",
     "set": "red",
     "price": 220,
     "rent": [18, 90, 250, 700, 875, 1050]
   },
   {
     "position": 23,
-    "name": "Indiana Avenue",
+    "name": "Indiana Avenue (INA)",
     "set": "red",
     "price": 220,
     "rent": [18, 90, 250, 700, 875, 1050]
   },
   {
     "position": 24,
-    "name": "Illinois Avenue",
+    "name": "Illinois Avenue (ILA)",
     "set": "red",
     "price": 240,
     "rent": [20, 100, 300, 750, 925, 1100]
   },
   {
     "position": 26,
-    "name": "Atlantic Avenue",
+    "name": "Atlantic Avenue (ATA)",
     "set": "yellow",
     "price": 260,
     "rent": [22, 110, 330, 800, 975, 1150]
   },
   {
     "position": 27,
-    "name": "Ventnor Avenue",
+    "name": "Ventnor Avenue (VEA)",
     "set": "yellow",
     "price": 260,
     "rent": [22, 110, 330, 800, 975, 1150]
   },
   {
     "position": 29,
-    "name": "Marvin Gardens",
+    "name": "Marvin Gardens (MG)",
     "set": "yellow",
     "price": 280,
     "rent": [24, 120, 360, 850, 1025, 1200]
   },
   {
     "position": 31,
-    "name": "Pacific Avenue",
+    "name": "Pacific Avenue (PA)",
     "set": "green",
     "price": 300,
     "rent": [26, 130, 390, 900, 1100, 1275]
   },
   {
     "position": 32,
-    "name": "North Carolina Avenue",
+    "name": "North Carolina Avenue (NCA)",
     "set": "green",
     "price": 300,
     "rent": [26, 130, 390, 900, 1100, 1275]
   },
   {
     "position": 34,
-    "name": "Pennsylvania Avenue",
+    "name": "Pennsylvania Avenue (PEA)",
     "set": "green",
     "price": 320,
     "rent": [28, 150, 450, 1e3, 1200, 1400]
   },
   {
     "position": 37,
-    "name": "Park Place",
+    "name": "Park Place (PP)",
     "set": "blue",
     "price": 350,
     "rent": [35, 175, 500, 1100, 1300, 1500]
   },
   {
     "position": 39,
-    "name": "Boardwalk",
+    "name": "Boardwalk (B)",
     "set": "blue",
     "price": 400,
     "rent": [50, 200, 600, 1400, 1700, 2e3]
   },
   {
     "position": 5,
-    "name": "Reading Railroad",
+    "name": "Reading Railroad (RRR)",
     "set": "railroad"
   },
   {
     "position": 15,
-    "name": "Pennsylvania Railroad",
+    "name": "Pennsylvania Railroad (PRR)",
     "set": "railroad"
   },
   {
     "position": 25,
-    "name": "B. & O. Railroad",
+    "name": "B. & O. Railroad (BOR)",
     "set": "railroad"
   },
   {
     "position": 35,
-    "name": "Short Line",
+    "name": "Short Line (SL)",
     "set": "railroad"
   },
   {
     "position": 12,
-    "name": "Electric Company",
+    "name": "Electric Company (EC)",
     "set": "utility"
   },
   {
     "position": 28,
-    "name": "Water Works",
+    "name": "Water Works (WW)",
     "set": "utility"
   }
 ].map((p) => new Property(p));
