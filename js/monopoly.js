@@ -41,7 +41,7 @@ class Dice extends Array {
     this.peek().map((d) => {
       let die = document.createElement("div");
       die.style.transform = `rotate(${Math.random() * 360}deg)`;
-      die.style.paddingTop = `${Math.random() * 4}vh`;
+      die.style.paddingTop = `${Math.random() * 0.5}em`;
       die.innerText = DICE[d - 1];
       CELL.appendChild(die);
     });
